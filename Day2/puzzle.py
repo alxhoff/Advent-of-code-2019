@@ -1,60 +1,45 @@
 #! /bin/python
 import math
 
-program = []
 
-
-def set_register(offset, value):
-    global program
-    if offset < len(program):
-        program[offset] = value
-
-
-def get_register(offset):
-    global program
-    if offset < len(program):
-        return program[offset]
-
-    return 0
-
-
-def execute_instruction(instruction):
-    if instruction[0] == 1:  # Addition
-        op1 = get_register(instruction[1])
-        op2 = get_register(instruction[2])
-        set_register(instruction[3], op1 + op2)
-        return 0
-    elif instruction[0] == 2:  #Multiplication
-        op1 = get_register(instruction[1])
-        op2 = get_register(instruction[2])
-        set_register(instruction[3], op1 * op2)
-        return 0
-    elif instruction[0] == 99:
-        return -1
-
-
-def modify_program():
-    global program
-    program[1] = 12
-    program[2] = 2
-
-
-def run_program():
-    global program
-    instructions = []
+def get_program():
     program = input("").split(",")
-
-    modify_program()
 
     for entry in range(len(program)):
         program[entry] = int(program[entry])
 
+    return program
+
+
+def run_program(program):
     for i in range(math.ceil(len(program) / 4)):
-        if execute_instruction(program[0 + (i * 4):4 + (i * 4)]) == -1:
-            return
+        instruction = program[0 + (i * 4):4 + (i * 4)]
+        if instruction[0] == 1:  # Addition
+            op1 = program[instruction[1]]
+            op2 = program[instruction[2]]
+            try:
+                program[instruction[3]] = op1 + op2
+            except Exception:
+                return -1
+        elif instruction[0] == 2:  #Multiplication
+            op1 = program[instruction[1]]
+            op2 = program[instruction[2]]
+            try:
+                program[instruction[3]] = op1 * op2
+            except Exction:
+                return -1
+        elif instruction[0] == 99:
+            return 0
 
 
-run_program()
+program = get_program()
 
-print("Done")
-print(program[0])
+for noun in range(100):
+    for verb in range(100):
+        test_program = program.copy()
+        test_program[1] = noun
+        test_program[2] = verb
+        if run_program(test_program) == 0:
+            if test_program[0] == 19690720:
+                print("Noun: {}, verb: {}, output: {}".format(noun, verb, test_program[0]))
+                print("Result: {}".format(100 * noun + verb))
