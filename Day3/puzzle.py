@@ -26,22 +26,22 @@ def generate_coords(corner_list):
     return coord
 
 
-def shortest_distance(crossovers):
-    min_dist = 0
-
-    for entry in crossovers:
-        dist = abs(entry[0]) + abs(entry[1])
-        if min_dist == 0 or dist < min_dist:
-            min_dist = dist
-
-    return min_dist
-
-
 wire1 = generate_coords(input("Wire1: ").split(","))
 wire2 = generate_coords(input("Wire2: ").split(","))
 
 crossovers = list(set(wire1) & set(wire2))
 
-print(crossovers)
+req_steps = 0
 
-print(shortest_distance(crossovers))
+for crossover in crossovers:
+    steps_wire1 = min([i for i, j in enumerate(wire1) if j == crossover])
+    steps_wire2 = min([i for i, j in enumerate(wire2) if j == crossover])
+
+    steps = steps_wire1 + steps_wire2
+
+    if req_steps == 0 or steps < req_steps:
+        req_steps = steps
+
+req_steps += 2
+
+print(req_steps)
