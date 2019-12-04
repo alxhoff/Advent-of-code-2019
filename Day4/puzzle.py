@@ -29,11 +29,23 @@ def increase_password(number):
 
 
 def check_password(password):
-    for i in range(5):
-        if get_digit(password, i) == get_digit(password, i + 1):
-            return True
+    for i in range(5, 0, -1):
+        cur_digit = get_digit(password, i)
+        next_digit = get_digit(password, i - 1)
+        if cur_digit == next_digit:
+            if i == 1:
+                if cur_digit != get_digit(password, i + 1):
+                    return True
+            if i == 5:
+                if cur_digit != get_digit(password, i - 2):
+                    return True
+            else:
+                if cur_digit != get_digit(password, i + 1) and next_digit != get_digit(password, i - 2):
+                    return True
     return False
 
+
+val = check_password(111199)
 
 password_count = 0
 
