@@ -9,7 +9,7 @@ class parameterMode(Enum):
 
 
 def get_program():
-    program = input("").split(",")
+    program = input("Program $> ").split(",")
 
     for entry in range(len(program)):
         program[entry] = int(program[entry])
@@ -80,13 +80,11 @@ class intCodeComputer:
     def runProgram(self):
         self.pc = 0
         while True:
-            if self.pc == 208:
-                print("wait here")
             try:
                 opcode = self.getOpcode()
             except Exception:
                 return 0
-            if opcode == 1 or opcode == 2:  #3 operand instructions
+            if opcode in [1, 2, 7, 8]:  #3 operand instructions
                 op1 = self.getOperand(0)
                 op2 = self.getOperand(1)
                 op3 = self.getOperand(2)
@@ -100,14 +98,37 @@ class intCodeComputer:
                         op3.setValue(op1.getValue() * op2.getValue())
                     except Exction:
                         return -1
+                elif opcode == 7:  #Less than
+                    if op1.getValue() < op2.getValue():
+                        op3.setValue(1)
+                    else:
+                        op3.setValue(0)
+                elif opcode == 8:  #Equals
+                    if op1.getValue() == op2.getValue():
+                        op3.setValue(1)
+                    else:
+                        op3.setValue(0)
                 self.pc += 4
-            elif opcode == 3 or opcode == 4:  #1 operand instructions
+            elif opcode in [5, 6]:  #2 operand instructions
+                op1 = self.getOperand(0)
+                op2 = self.getOperand(1)
+                if opcode == 5:  #Jump-if-true, if op1 non-zere set pc to op2 value
+                    if op1.getValue():
+                        self.pc = op2.getValue()
+                    else:
+                        self.pc += 3
+                elif opcode == 6:  #Jump-if-false if op1 is zero set pc to op2 value
+                    if not op1.getValue():
+                        self.pc = op2.getValue()
+                    else:
+                        self.pc += 3
+            elif opcode in [3, 4]:  #1 operand instructions
                 if opcode == 3:  #Input
                     op1 = self.getOperand(0, override_mode=parameterMode.POSITION_MODE)
-                    op1.setValue(int(input("Input $>")))
+                    op1.setValue(int(input("Input $> ")))
                 elif opcode == 4:  #Output
                     op1 = self.getOperand(0)
-                    print("Output @{} $>{}".format(self.pc, op1.getValue()))
+                    print("Output @{} $> {}".format(self.pc, op1.getValue()))
                 self.pc += 2
             elif opcode == 99:
                 self.endProgram()
