@@ -22,6 +22,30 @@ class object:
 
         return parents
 
+    def get_parents(self):
+
+        parents = []
+        iterator = self
+        while (iterator.parent):
+            parents.append(iterator.parent.identifier)
+            iterator = iterator.parent
+
+        return parents
+
+    def steps_to_object(self, o_identifier):
+
+        steps = -1
+        iterator = self
+
+        while (iterator.parent):
+            steps += 1
+            if iterator.parent.identifier == o_identifier:
+                return steps
+            else:
+                iterator = iterator.parent
+
+        return steps
+
 
 class mapping:
     def __init__(self, center, orbiting):
@@ -30,6 +54,19 @@ class mapping:
 
 
 class orbitParser:
+    def __init__(self):
+        self.mappings = []
+        self.objects = dict()
+        for line in iter(input, ""):
+            bodies = line.split(")")
+            self.mappings.append(mapping(bodies[0], bodies[1]))
+
+    def find_common_objects(self):
+        your_objects = self.objects["YOU"].get_parents()
+        santas_objects = self.objects["SAN"].get_parents()
+
+        return [object for object in your_objects if object in santas_objects]
+
     def parse_mappings(self):
         for mapping in self.mappings:
             if not mapping.center in self.objects:
@@ -48,13 +85,13 @@ class orbitParser:
             orbits += value.count_parents()
         print("Orbits = {}".format(orbits))
 
-    def __init__(self):
-        self.mappings = []
-        self.objects = dict()
-        for line in iter(input, ""):
-            bodies = line.split(")")
-            self.mappings.append(mapping(bodies[0], bodies[1]))
-
 
 op = orbitParser()
 op.parse_mappings()
+
+earliest_common_object = op.find_common_objects()[0]
+
+my_steps = op.objects["YOU"].steps_to_object(earliest_common_object)
+his_steps = op.objects["SAN"].steps_to_object(earliest_common_object)
+
+print("Common object: {}, my steps: {}, his steps: {}, total steps: {}".format(earliest_common_object, my_steps, his_steps, my_steps + his_steps))
