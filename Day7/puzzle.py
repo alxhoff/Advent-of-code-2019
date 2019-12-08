@@ -1,4 +1,5 @@
 #! /bin/python
+import threading
 import math
 from queue import Queue
 from enum import Enum
@@ -39,8 +40,9 @@ class parameter:
             self.program[self.position] = value
 
 
-class intCodeComputer:
+class intCodeComputer(threading.Thread):
     def __init__(self, ID, phase, program, arg1=None, arg2=None, input_queue=None, output_queue=None):
+        threading.Thread.__init__(self)
 
         self.id = ID
         self.phase = phase
@@ -55,6 +57,9 @@ class intCodeComputer:
         self.phase_set = False
         self.input_queue = input_queue
         self.output_queue = output_queue
+
+    def run(self):
+        self.runProgram()
 
     def getOpcode(self):
         self.getParameterModes()
@@ -174,33 +179,39 @@ def permutation(lst):
 
 program = get_program()
 
-queue0 = Queue()
-queue1 = Queue()
-queue2 = Queue()
-queue3 = Queue()
-queue4 = Queue()
-queue5 = Queue()
 
 max_val = 0
 
-phases = [0, 1, 2, 3, 4]
+phases = [5, 6, 7, 8, 9]
 phases = permutation(phases)
 
-for phase in phases:
-    queue0.put(0)
 
-    comp1 = intCodeComputer(1, phase[0], program, input_queue=queue0, output_queue=queue1)
+for phase in phases:
+
+    queue1 = Queue()
+    queue2 = Queue()
+    queue3 = Queue()
+    queue4 = Queue()
+    queue5 = Queue()
+
+    queue5.put(0)
+
+    comp1 = intCodeComputer(1, phase[0], program, input_queue=queue5, output_queue=queue1)
     comp2 = intCodeComputer(2, phase[1], program, input_queue=queue1, output_queue=queue2)
     comp3 = intCodeComputer(3, phase[2], program, input_queue=queue2, output_queue=queue3)
     comp4 = intCodeComputer(4, phase[3], program, input_queue=queue3, output_queue=queue4)
     comp5 = intCodeComputer(5, phase[4], program, input_queue=queue4, output_queue=queue5)
-    comp1.runProgram()
-    comp2.runProgram()
-    comp3.runProgram()
-    comp4.runProgram()
-    comp5.runProgram()
+
+    comp1.start()
+    comp2.start()
+    comp3.start()
+    comp4.start()
+    comp5.start()
+
+    comp5.join()
 
     result = queue5.get(block=True)
+    queue5.put(result)
 
     if result > max_val:
         max_val = result
