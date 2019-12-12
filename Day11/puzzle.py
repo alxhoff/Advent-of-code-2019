@@ -2,6 +2,7 @@
 import threading
 import copy
 import math
+import matplotlib.pyplot as plt
 import hashlib
 from queue import Queue
 from enum import Enum
@@ -277,7 +278,8 @@ class coord:
 
 class shipPanel:
 
-    def __init__(self):
+    def __init__(self, coords):
+        self.coords = coords
         self.times_painted = 0
         self.colour = colour.BLACK
 
@@ -298,7 +300,7 @@ class shipHull:
     def _getPanel(self, x, y):
         key = self._getKey(x, y)
         if key not in self.panels:
-            self.panels[key] = shipPanel()
+            self.panels[key] = shipPanel(coord(x, y))
         return self.panels[key]
 
     def getPanelColour(self, x, y):
@@ -316,19 +318,29 @@ class shipHull:
                 ret += 1
         return ret
 
+    def drawHull(self):
+        for key, value in self.panels.items():
+            if value.colour == colour.WHITE:
+                plt.scatter(value.coords.x, value.coords.y, s=50)
+
+        plt.title("SpaceshipMcSpaceface")
+        plt.show()
+
 
 class robot:
 
-    def __init__(self, program):
+    def __init__(self, program, debug=0):
 
         self.running = threading.Semaphore()
         self.input_q = Queue()
         self.output_q = Queue()
-        self.intComp = intCodeComputer(1, program=program, input_queue=self.input_q, output_queue=self.output_q, exit_semaphore=self.running, debug=1)
+        self.intComp = intCodeComputer(1, program=program, input_queue=self.input_q, output_queue=self.output_q, exit_semaphore=self.running, debug=debug)
         self.intComp.start()
         self.position = coord(0, 0)
         self.ship_hull = shipHull()
         self.direction = direction.UP  # Assume robot faces up at begining
+        self.debug = debug
+        self.start_panel = True
 
     def _paintPanel(self, colour):
         self.ship_hull.paintPanel(self.position.x, self.position.y, colour)
@@ -381,6 +393,9 @@ class robot:
     def _paintCurrentPanel(self, colour):
         self.ship_hull.paintPanel(self.position.x, self.position.y, colour)
 
+    def showHull(self):
+        self.ship_hull.drawHull()
+
     def getPaintedPanelCount(self):
         return self.ship_hull.getPaintedPanelCount()
 
@@ -390,6 +405,9 @@ class robot:
                 return
 
             current_panel_colour = self._getCurrentPanelColour()
+            if self.start_panel:
+                self._paintCurrentPanel(colour.WHITE)
+                current_panel_colour = colour.WHITE
 
             # Put into input queue for intCode comp and wait for output
             self.input_q.put(int(current_panel_colour.value))
@@ -410,4 +428,5 @@ program = get_program()
 hull_robot = robot(program)
 hull_robot.paint()
 print("Panels painted = {}".format(hull_robot.getPaintedPanelCount()))
+hull_robot.showHull()
 exit(0)
