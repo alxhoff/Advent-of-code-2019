@@ -20,7 +20,11 @@ def get_program():
 
 
 class parameter:
-    def __init__(self, program, position, value, mode=parameterMode.POSITION_MODE):
+    def __init__(self,
+                 program,
+                 position,
+                 value,
+                 mode=parameterMode.POSITION_MODE):
 
         self.program = program
         self.position = position
@@ -41,7 +45,14 @@ class parameter:
 
 
 class intCodeComputer(threading.Thread):
-    def __init__(self, ID, phase, program, arg1=None, arg2=None, input_queue=None, output_queue=None):
+    def __init__(self,
+                 ID,
+                 phase,
+                 program,
+                 arg1=None,
+                 arg2=None,
+                 input_queue=None,
+                 output_queue=None):
         threading.Thread.__init__(self)
 
         self.id = ID
@@ -74,9 +85,15 @@ class intCodeComputer(threading.Thread):
     def getOperand(self, n, override_mode=None):
         position = self.pc + n + 1
         if override_mode:
-            return parameter(program=self.program, position=position, value=self.program[position], mode=override_mode.value)
+            return parameter(program=self.program,
+                             position=position,
+                             value=self.program[position],
+                             mode=override_mode.value)
         else:
-            return parameter(program=self.program, position=position, value=self.program[position], mode=self.getSingleParameterMode(n))
+            return parameter(program=self.program,
+                             position=position,
+                             value=self.program[position],
+                             mode=self.getSingleParameterMode(n))
 
     def printState(self):
         print("pc: {}".format(self.pc))
@@ -134,7 +151,8 @@ class intCodeComputer(threading.Thread):
                         self.pc += 3
             elif opcode in [3, 4]:  # 1 operand instructions
                 if opcode == 3:  # Input
-                    op1 = self.getOperand(0, override_mode=parameterMode.POSITION_MODE)
+                    op1 = self.getOperand(
+                        0, override_mode=parameterMode.POSITION_MODE)
                     if not self.phase_set:
                         op1.setValue(self.phase)
                         self.phase_set = True
@@ -150,7 +168,8 @@ class intCodeComputer(threading.Thread):
                         outp = op1.getValue()
                         self.output_queue.put(outp)
                     else:
-                        print("Output @{} $> {}".format(self.pc, op1.getValue()))
+                        print("Output @{} $> {}".format(
+                            self.pc, op1.getValue()))
                 self.pc += 2
             elif opcode == 99:
                 self.endProgram()
@@ -170,7 +189,7 @@ def permutation(lst):
     for i in range(len(lst)):
         m = lst[i]
 
-        remLst = lst[:i] + lst[i+1:]
+        remLst = lst[:i] + lst[i + 1:]
 
         for p in permutation(remLst):
             l.append([m] + p)
@@ -179,12 +198,10 @@ def permutation(lst):
 
 program = get_program()
 
-
 max_val = 0
 
 phases = [5, 6, 7, 8, 9]
 phases = permutation(phases)
-
 
 for phase in phases:
 
@@ -196,11 +213,31 @@ for phase in phases:
 
     queue5.put(0)
 
-    comp1 = intCodeComputer(1, phase[0], program, input_queue=queue5, output_queue=queue1)
-    comp2 = intCodeComputer(2, phase[1], program, input_queue=queue1, output_queue=queue2)
-    comp3 = intCodeComputer(3, phase[2], program, input_queue=queue2, output_queue=queue3)
-    comp4 = intCodeComputer(4, phase[3], program, input_queue=queue3, output_queue=queue4)
-    comp5 = intCodeComputer(5, phase[4], program, input_queue=queue4, output_queue=queue5)
+    comp1 = intCodeComputer(1,
+                            phase[0],
+                            program,
+                            input_queue=queue5,
+                            output_queue=queue1)
+    comp2 = intCodeComputer(2,
+                            phase[1],
+                            program,
+                            input_queue=queue1,
+                            output_queue=queue2)
+    comp3 = intCodeComputer(3,
+                            phase[2],
+                            program,
+                            input_queue=queue2,
+                            output_queue=queue3)
+    comp4 = intCodeComputer(4,
+                            phase[3],
+                            program,
+                            input_queue=queue3,
+                            output_queue=queue4)
+    comp5 = intCodeComputer(5,
+                            phase[4],
+                            program,
+                            input_queue=queue4,
+                            output_queue=queue5)
 
     comp1.start()
     comp2.start()

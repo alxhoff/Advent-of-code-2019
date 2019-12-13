@@ -24,7 +24,11 @@ def get_program():
 
 
 class parameter:
-    def __init__(self, program, position, value, mode=parameterMode.POSITION_MODE):
+    def __init__(self,
+                 program,
+                 position,
+                 value,
+                 mode=parameterMode.POSITION_MODE):
 
         self.program = program
         self.position = position
@@ -77,7 +81,16 @@ class parameter:
 
 
 class intCodeComputer(threading.Thread):
-    def __init__(self, ID, program, phase=None, arg1=None, arg2=None, input_queue=None, output_queue=None, debug=False, exit_semaphore=None):
+    def __init__(self,
+                 ID,
+                 program,
+                 phase=None,
+                 arg1=None,
+                 arg2=None,
+                 input_queue=None,
+                 output_queue=None,
+                 debug=False,
+                 exit_semaphore=None):
         threading.Thread.__init__(self)
 
         self.id = ID
@@ -118,9 +131,15 @@ class intCodeComputer(threading.Thread):
     def getOperand(self, n, override_mode=None):
         position = self.pc + n + 1
         if override_mode:
-            return parameter(program=self.program, position=position, value=self.program[position], mode=override_mode.value)
+            return parameter(program=self.program,
+                             position=position,
+                             value=self.program[position],
+                             mode=override_mode.value)
         else:
-            return parameter(program=self.program, position=position, value=self.program[position], mode=self.getSingleParameterMode(n))
+            return parameter(program=self.program,
+                             position=position,
+                             value=self.program[position],
+                             mode=self.getSingleParameterMode(n))
 
     def printState(self):
         print("pc: {}".format(self.pc))
@@ -152,12 +171,22 @@ class intCodeComputer(threading.Thread):
                     res = op1_i + op2_i
                     self.setOpValue(op3, res)
                     if self.debug >= 2:
-                        print("{}@{}: '{}[{}] + {}[{}]' -> [{}] <- {}".format(opcode, self.pc, op1_i, op1.getIndex(self.relative_base), op2_i, op2.getIndex(self.relative_base), op3.getIndex(self.relative_base), self.getOpValue(op3)))
+                        print("{}@{}: '{}[{}] + {}[{}]' -> [{}] <- {}".format(
+                            opcode, self.pc, op1_i,
+                            op1.getIndex(self.relative_base), op2_i,
+                            op2.getIndex(self.relative_base),
+                            op3.getIndex(self.relative_base),
+                            self.getOpValue(op3)))
                 elif opcode == 2:  # Multiplication
                     res = op1_i * op2_i
                     self.setOpValue(op3, res)
                     if self.debug >= 2:
-                        print("{}@{}: '{}[{}] * {}[{}]' -> [{}] <- {}".format(opcode, self.pc, op1_i, op1.getIndex(self.relative_base), op2_i, op2.getIndex(self.relative_base), op3.getIndex(self.relative_base), self.getOpValue(op3)))
+                        print("{}@{}: '{}[{}] * {}[{}]' -> [{}] <- {}".format(
+                            opcode, self.pc, op1_i,
+                            op1.getIndex(self.relative_base), op2_i,
+                            op2.getIndex(self.relative_base),
+                            op3.getIndex(self.relative_base),
+                            self.getOpValue(op3)))
                 elif opcode == 7:  # Less than
                     if op1_i < op2_i:
                         res = 1
@@ -165,7 +194,12 @@ class intCodeComputer(threading.Thread):
                         res = 0
                     self.setOpValue(op3, res)
                     if self.debug >= 2:
-                        print("{}@{}: '{}[{}] < {}[{}]' -> [{}] <- {}".format(opcode, self.pc, op1_i, op1.getIndex(self.relative_base), op2_i, op2.getIndex(self.relative_base), op3.getIndex(self.relative_base), self.getOpValue(op3)))
+                        print("{}@{}: '{}[{}] < {}[{}]' -> [{}] <- {}".format(
+                            opcode, self.pc, op1_i,
+                            op1.getIndex(self.relative_base), op2_i,
+                            op2.getIndex(self.relative_base),
+                            op3.getIndex(self.relative_base),
+                            self.getOpValue(op3)))
                 elif opcode == 8:  # Equals
                     if self.getOpValue(op1) == self.getOpValue(op2):
                         res = 1
@@ -173,7 +207,12 @@ class intCodeComputer(threading.Thread):
                         res = 0
                     self.setOpValue(op3, res)
                     if self.debug >= 2:
-                        print("{}@{}: '{}[{}] == {}[{}]' -> [{}] <- {}".format(opcode, self.pc, op1_i, op1.getIndex(self.relative_base), op2_i, op2.getIndex(self.relative_base), op3.getIndex(self.relative_base), self.getOpValue(op3)))
+                        print("{}@{}: '{}[{}] == {}[{}]' -> [{}] <- {}".format(
+                            opcode, self.pc, op1_i,
+                            op1.getIndex(self.relative_base), op2_i,
+                            op2.getIndex(self.relative_base),
+                            op3.getIndex(self.relative_base),
+                            self.getOpValue(op3)))
                 self.pc += 4
             elif opcode in [5, 6]:  # 2 operand instructions
                 op1 = self.getOperand(0)
@@ -186,7 +225,10 @@ class intCodeComputer(threading.Thread):
                     else:
                         self.pc += 3
                     if self.debug >= 2:
-                        print("{}@{}: non-zero:'{}' @ [{}], pc {} -> {}".format(opcode, pc, res, op1.getIndex(self.relative_base), pc, self.pc))
+                        print(
+                            "{}@{}: non-zero:'{}' @ [{}], pc {} -> {}".format(
+                                opcode, pc, res,
+                                op1.getIndex(self.relative_base), pc, self.pc))
                 elif opcode == 6:  # Jump-if-false if op1 is zero set pc to op2 value
                     res = self.getOpValue(op1)
                     if not res:
@@ -194,10 +236,13 @@ class intCodeComputer(threading.Thread):
                     else:
                         self.pc += 3
                     if self.debug >= 2:
-                        print("{}@{}: zero:'{}' @ [{}], pc {} -> {}".format(opcode, pc, res, op1.getIndex(self.relative_base), pc, self.pc))
+                        print("{}@{}: zero:'{}' @ [{}], pc {} -> {}".format(
+                            opcode, pc, res, op1.getIndex(self.relative_base),
+                            pc, self.pc))
             elif opcode in [3, 4, 9]:  # 1 operand instructions
                 if opcode == 3:  # Input
-                    op1 = self.getOperand(0)  # , override_mode=parameterMode.POSITION_MODE)
+                    op1 = self.getOperand(
+                        0)  # , override_mode=parameterMode.POSITION_MODE)
                     if not self.phase_set:
                         self.setOpValue(op1, self.phase)
                         self.phase_set = True
@@ -210,7 +255,9 @@ class intCodeComputer(threading.Thread):
                             inp = int(input("Input $> "))
                         self.setOpValue(op1, inp)
                         if self.debug >= 2:
-                            print("{}@{}: Input '{}' -> [{}]".format(opcode, self.pc, inp, op1.getIndex(self.relative_base)))
+                            print("{}@{}: Input '{}' -> [{}]".format(
+                                opcode, self.pc, inp,
+                                op1.getIndex(self.relative_base)))
                 elif opcode == 4:  # Output
                     op1 = self.getOperand(0)
                     outp = self.getOpValue(op1)
@@ -221,14 +268,19 @@ class intCodeComputer(threading.Thread):
                     else:
                         print("Output @{} $> {}".format(self.pc, outp))
                     if self.debug >= 2:
-                        print("{}@{}: Output from [{}]-> '{}'".format(opcode, self.pc, op1.getIndex(self.relative_base), outp))
+                        print("{}@{}: Output from [{}]-> '{}'".format(
+                            opcode, self.pc, op1.getIndex(self.relative_base),
+                            outp))
                 elif opcode == 9:
                     op1 = self.getOperand(0)
                     prev = self.relative_base
                     inc = self.getOpValue(op1)
                     self.relative_base += inc
                     if self.debug >= 2:
-                        print("{}@{}: {} + {}@[{}] -> {}".format(opcode, self.pc, prev, inc, op1.getIndex(self.relative_base), self.relative_base))
+                        print("{}@{}: {} + {}@[{}] -> {}".format(
+                            opcode, self.pc, prev, inc,
+                            op1.getIndex(self.relative_base),
+                            self.relative_base))
 
                 self.pc += 2
             elif opcode == 99:
@@ -257,7 +309,6 @@ class colour(Enum):
 
 
 class coord:
-
     def __init__(self, x, y):
 
         self.x = x
@@ -277,7 +328,6 @@ class coord:
 
 
 class shipPanel:
-
     def __init__(self, coords):
         self.coords = coords
         self.times_painted = 0
@@ -289,7 +339,6 @@ class shipPanel:
 
 
 class shipHull:
-
     def __init__(self):
 
         self.panels = dict()
@@ -328,13 +377,17 @@ class shipHull:
 
 
 class robot:
-
     def __init__(self, program, debug=0):
 
         self.running = threading.Semaphore()
         self.input_q = Queue()
         self.output_q = Queue()
-        self.intComp = intCodeComputer(1, program=program, input_queue=self.input_q, output_queue=self.output_q, exit_semaphore=self.running, debug=debug)
+        self.intComp = intCodeComputer(1,
+                                       program=program,
+                                       input_queue=self.input_q,
+                                       output_queue=self.output_q,
+                                       exit_semaphore=self.running,
+                                       debug=debug)
         self.intComp.start()
         self.position = coord(0, 0)
         self.ship_hull = shipHull()
@@ -421,7 +474,12 @@ class robot:
             self._paintCurrentPanel(colour_to_paint_panel)
             self._move(direction_to_move)
             if self.intComp.debug >= 1:
-                print("{} -> {}, moved {} from ({},{}) -> ({},{}), facing {} -> {}".format(str(current_panel_colour), str(colour_to_paint_panel), str(direction_to_move), prev_pos.x, prev_pos.y, self.position.x, self.position.y, prev_facing, self.direction))
+                print(
+                    "{} -> {}, moved {} from ({},{}) -> ({},{}), facing {} -> {}"
+                    .format(str(current_panel_colour),
+                            str(colour_to_paint_panel), str(direction_to_move),
+                            prev_pos.x, prev_pos.y, self.position.x,
+                            self.position.y, prev_facing, self.direction))
 
 
 program = get_program()

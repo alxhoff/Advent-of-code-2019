@@ -75,7 +75,8 @@ class orbitParser:
             if not mapping.orbiting in self.objects:
                 self.objects[mapping.orbiting] = object(mapping.orbiting)
 
-            self.objects[mapping.orbiting].set_parent(self.objects[mapping.center])
+            self.objects[mapping.orbiting].set_parent(
+                self.objects[mapping.center])
 
         self.count_orbits()
 
@@ -94,4 +95,5 @@ earliest_common_object = op.find_common_objects()[0]
 my_steps = op.objects["YOU"].steps_to_object(earliest_common_object)
 his_steps = op.objects["SAN"].steps_to_object(earliest_common_object)
 
-print("Common object: {}, my steps: {}, his steps: {}, total steps: {}".format(earliest_common_object, my_steps, his_steps, my_steps + his_steps))
+print("Common object: {}, my steps: {}, his steps: {}, total steps: {}".format(
+    earliest_common_object, my_steps, his_steps, my_steps + his_steps))

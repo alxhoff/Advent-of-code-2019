@@ -73,16 +73,21 @@ for asteroid in asteroids:
     if asteroid.los > max_los[0] or not max_los[1]:
         max_los = [asteroid.los, asteroid]
 
-print("Max los ({}) asteroid position: {}, {}".format(max_los[0], max_los[1].coords.x, max_los[1].coords.y))
+print("Max los ({}) asteroid position: {}, {}".format(max_los[0],
+                                                      max_los[1].coords.x,
+                                                      max_los[1].coords.y))
 
 laser_asteroid = max_los[1]
 
-asteroid_trajectories = sorted(list(float(i) for i in laser_asteroid.trajectories), reverse=True)
+asteroid_trajectories = sorted(list(
+    float(i) for i in laser_asteroid.trajectories),
+                               reverse=True)
 
 starting_index = math.radians(90)
 
 for i in range(len(asteroid_trajectories) - 2):
-    if asteroid_trajectories[i] >= starting_index > asteroid_trajectories[i + 1]:
+    if asteroid_trajectories[i] >= starting_index > asteroid_trajectories[i +
+                                                                          1]:
         starting_index = i
         break
 
@@ -92,8 +97,10 @@ i = starting_index
 while True:
 
     if asteroids_destroyed == 199:
-        the_last_asteroid = laser_asteroid.getAsteroid(asteroid_trajectories[i])
-        print("Result: {}".format(the_last_asteroid.coords.x * 100 + the_last_asteroid.coords.y))
+        the_last_asteroid = laser_asteroid.getAsteroid(
+            asteroid_trajectories[i])
+        print("Result: {}".format(the_last_asteroid.coords.x * 100 +
+                                  the_last_asteroid.coords.y))
         break
 
     if laser_asteroid.destroyAsteroid(asteroid_trajectories[i]):

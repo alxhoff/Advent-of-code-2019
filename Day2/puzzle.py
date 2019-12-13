@@ -41,5 +41,6 @@ for noun in range(100):
         test_program[2] = verb
         if run_program(test_program) == 0:
             if test_program[0] == 19690720:
-                print("Noun: {}, verb: {}, output: {}".format(noun, verb, test_program[0]))
+                print("Noun: {}, verb: {}, output: {}".format(
+                    noun, verb, test_program[0]))
                 print("Result: {}".format(100 * noun + verb))

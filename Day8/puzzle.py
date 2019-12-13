@@ -7,7 +7,7 @@ IMAGE_PIXELS = HEIGHT * WIDTH
 image = input("Image $> ")
 
 layers = []
-layer_no = int(round(len(image)/(WIDTH * HEIGHT)))
+layer_no = int(round(len(image) / (WIDTH * HEIGHT)))
 
 for l in range(layer_no):
     layer = []

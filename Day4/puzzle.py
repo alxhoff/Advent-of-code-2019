@@ -40,7 +40,9 @@ def check_password(password):
                 if cur_digit != get_digit(password, i - 2):
                     return True
             else:
-                if cur_digit != get_digit(password, i + 1) and next_digit != get_digit(password, i - 2):
+                if cur_digit != get_digit(password,
+                                          i + 1) and next_digit != get_digit(
+                                              password, i - 2):
                     return True
     return False
 

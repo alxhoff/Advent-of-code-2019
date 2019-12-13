@@ -18,7 +18,11 @@ def get_program():
 
 
 class parameter:
-    def __init__(self, program, position, value, mode=parameterMode.POSITION_MODE):
+    def __init__(self,
+                 program,
+                 position,
+                 value,
+                 mode=parameterMode.POSITION_MODE):
 
         self.program = program
         self.position = position
@@ -63,9 +67,15 @@ class intCodeComputer:
     def getOperand(self, n, override_mode=None):
         position = self.pc + n + 1
         if override_mode:
-            return parameter(program=self.program, position=position, value=self.program[position], mode=override_mode.value)
+            return parameter(program=self.program,
+                             position=position,
+                             value=self.program[position],
+                             mode=override_mode.value)
         else:
-            return parameter(program=self.program, position=position, value=self.program[position], mode=self.getSingleParameterMode(n))
+            return parameter(program=self.program,
+                             position=position,
+                             value=self.program[position],
+                             mode=self.getSingleParameterMode(n))
 
     def printState(self):
         print("pc: {}".format(self.pc))
@@ -124,7 +134,8 @@ class intCodeComputer:
                         self.pc += 3
             elif opcode in [3, 4]:  #1 operand instructions
                 if opcode == 3:  #Input
-                    op1 = self.getOperand(0, override_mode=parameterMode.POSITION_MODE)
+                    op1 = self.getOperand(
+                        0, override_mode=parameterMode.POSITION_MODE)
                     op1.setValue(int(input("Input $> ")))
                 elif opcode == 4:  #Output
                     op1 = self.getOperand(0)
