@@ -43,15 +43,15 @@ class system:
             if not self.moons[i].period_found:
                 #  Returns if the moon is back to its initial position
                 if not self.moons[i].step(self.steps):
-                    if self.steps:
-                        ret = False
+                    ret = False
 
         return ret
 
     def _step(self):
 
-        self.steps += 1
         self._getVelocityDeltas()
+
+        #  Return true when all moons' periods have been found
         return self._stepMoons()
 
     def _printSystem(self, initial=False):
@@ -68,14 +68,19 @@ class system:
     #  Run until all moons have found their periods
     def stepSystem(self, steps=0):
 
-        while not self._step():
-            if steps:
-                self._printSystem()
-                if self.steps == steps:
-                    return
+        while True:
+
+            if self._step():
+                return
+            self.steps += 1
+
+            if self.steps == steps:
+                return
+
             if not self.steps % 100000:
+                self._printSystem()
                 print("step: {}".format(self.steps))
-            pass
+
 
         period = []
         for moon in self.moons:
@@ -133,10 +138,11 @@ class moon:
             self.z += self.v_z
             self.v_dz = 0
 
+    #  Returns true is moon is back in original position
     def _check(self, step):
 
-        if self.period_found:
-            return True
+        if step==2772 or step==2771:
+            print("wait here")
 
         if self.x != self.initial_x:
             return False
@@ -178,6 +184,11 @@ class moon:
             "pos=<x={: d}, y={: d}, z={: d}>, vel=<x={: d}, y={: d}, z={: d}>".
             format(self.x, self.y, self.z, self.v_x, self.v_y, self.v_z))
 
+    def printInitial(self):
+
+        print(
+            "pos=<x={: d}, y={: d}, z={: d}>, vel=<x=0, y=0, z=0>".
+            format(self.initial_x, self.initial_y, self.initial_z))
 
 sys = system()
-sys.stepSystem()
+sys.stepSystem(3000)
