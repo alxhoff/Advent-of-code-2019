@@ -8,6 +8,8 @@ import hashlib
 from queue import Queue
 from enum import Enum
 
+import pygame
+pygame.init()
 
 class parameterMode(Enum):
     POSITION_MODE = 0
@@ -116,6 +118,9 @@ class intCodeComputer(threading.Thread):
         self.input_queue = input_queue
         self.output_queue = output_queue
         self.debug = debug
+
+    def patchProgram(self, location, value):
+        self.program[location] = value
 
     def run(self):
         self.runProgram()
@@ -335,7 +340,10 @@ class pixel:
 class screen:
     def __init__(self):
 
+        self.pixel_size = 20
         self.pixels = dict()
+        self.pixel_objs = []
+        self.win = pygame.display.set_mode((760,500))
 
     def _getKey(self, x, y):
         return hashlib.sha1(str([x, y]).encode()).hexdigest()
@@ -361,26 +369,60 @@ class screen:
                 ret += 1
         return ret
 
+    def getInput(self):
+
+        return self.win.getKey()
+
+    def draw(self):
+
+        pygame.time.delay(50)
+
+        self.win.fill((0,0,0))
+
+        for key,value in self.pixels.items():
+            if value.type == p_type.EMPTY:
+                continue
+
+            if value.type == p_type.WALL:
+                pygame.draw.rect(self.win, (255,0,0), (value.coords.x * self.pixel_size, value.coords.y * self.pixel_size, self.pixel_size, self.pixel_size) )
+            elif value.type == p_type.BLOCK:
+                pygame.draw.rect(self.win, (0,255,0), (value.coords.x * self.pixel_size, value.coords.y * self.pixel_size, self.pixel_size, self.pixel_size) )
+            elif value.type == p_type.BALL:
+                pygame.draw.rect(self.win, (0,0,255), (value.coords.x * self.pixel_size, value.coords.y * self.pixel_size, self.pixel_size, self.pixel_size) )
+            elif value.type == p_type.HORIZ_PADLE:
+                pygame.draw.rect(self.win, (0,255,255), (value.coords.x * self.pixel_size, value.coords.y * self.pixel_size, self.pixel_size, self.pixel_size) )
+
+        pygame.display.update()
+
+
+class direction(Enum):
+
+    LEFT = 0
+    RIGHT = 1
+    UP = 2
+    DOWN = 3
+
+
 class arcade:
     def __init__(self, program, debug=0):
+
+        self.screen = screen()
 
         #intComp
         self.running = threading.Semaphore()
         self.input_q = Queue()
         self.output_q = Queue()
+
         self.intComp = intCodeComputer(1,
                                        program=program,
                                        input_queue=self.input_q,
                                        output_queue=self.output_q,
                                        exit_semaphore=self.running,
                                        debug=debug - 1)
-        self.intComp.runProgram()
-
-        self.screen = screen()
+        self.intComp.patchProgram(0, 2)
+        self.intComp.start()
         self.debug = debug
 
-    def showScreen(self):
-        self.screen.draw()
 
     def getPTypeCount(self, ptype):
         return self.screen.getPTypeCount(ptype)
@@ -388,23 +430,43 @@ class arcade:
     def _drawPixel(self, x, y, ptype):
         self.screen.drawPixel(x, y, ptype)
 
-    def draw(self):
+    def run(self):
+        highscore = 0
+        count = 0
+        while True:
 
-        while not self.output_q.empty():
+            while not self.output_q.empty():
+                x_pos = int(self.output_q.get())
+                y_pos = int(self.output_q.get())
+                third = int(self.output_q.get())
 
-            print("Running")
-            x_pos = int(self.output_q.get(block=True))
-            y_pos = int(self.output_q.get(block=True))
-            ptype = p_type(self.output_q.get(block=True))
+                if p_type.EMPTY.value <= third <= p_type.BALL.value:
+                    ptype = p_type(third)
+                    self._drawPixel(x_pos, y_pos, ptype)
+                else:
+                    highscore = third
 
-            self._drawPixel(x_pos, y_pos, ptype)
+            keys = pygame.key.get_pressed()
 
-            if self.debug:
-                print("Received {} @ ({},{})".format(str(ptype), x_pos, y_pos))
+            if keys[pygame.K_LEFT]:
+                self.input_q.put(-1)
+                count = 0
+            if keys[pygame.K_RIGHT]:
+                self.input_q.put(1)
+                count = 0
+            else:
+                count += 1
+                if count == 50:
+                    self.input_q.put(0)
+
+            pygame.event.pump()  # process event queue
+            self.screen.draw()
+
+
+
+            print("Highscore: {}".format(highscore))
 
 
 program = get_program()
-arcade_cabinet = arcade(program, debug=2)
-arcade_cabinet.draw()
-print("Block tile count = {}".format(arcade_cabinet.getPTypeCount(
-    p_type.BLOCK)))
+arcade_cabinet = arcade(program, debug=1)
+arcade_cabinet.run()
