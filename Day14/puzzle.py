@@ -79,12 +79,6 @@ class RecipeBook:
 
     def iterate(self):
 
-        # for each item in recipe, try to replace item with it's own recipe
-            #first check for existing units that could be used
-                # use existing units
-
-            # perfom substitution
-
         all_ore = False
 
         while not all_ore:

@@ -361,16 +361,6 @@ class screen:
                 ret += 1
         return ret
 
-    def draw(self):
-        #  for key, value in self.pixels.items():
-        #      if value.type == p_type.WHITE:
-        #          plt.scatter(value.coords.x, value.coords.y, s=50)
-        #
-        #  plt.title("SpaceshipMcSpaceface")
-        #  plt.show()
-        return
-
-
 class arcade:
     def __init__(self, program, debug=0):
 
@@ -399,11 +389,10 @@ class arcade:
         self.screen.drawPixel(x, y, ptype)
 
     def draw(self):
-        #wait for intComp to finish
-        #  self.running.acquire(blocking=True)
-        #  time.sleep(1)
+
         while not self.output_q.empty():
 
+            print("Running")
             x_pos = int(self.output_q.get(block=True))
             y_pos = int(self.output_q.get(block=True))
             ptype = p_type(self.output_q.get(block=True))
@@ -419,4 +408,3 @@ arcade_cabinet = arcade(program, debug=2)
 arcade_cabinet.draw()
 print("Block tile count = {}".format(arcade_cabinet.getPTypeCount(
     p_type.BLOCK)))
-#  arcade_cabinet.showScreen()
