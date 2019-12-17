@@ -4,8 +4,6 @@ import math
 import re
 
 
-
-
 class MaterialAmount:
     def __init__(self, info):
 
@@ -19,10 +17,12 @@ class Conversion:
         self.output = output
         self.inputs = inputs
 
+
 def insert_list(out_list, list_to_insert, pos):
 
     for i in range(len(list_to_insert)):
         out_list.insert(i + pos, list_to_insert[i])
+
 
 class RecipeBook:
     def __init__(self):
@@ -111,7 +111,8 @@ class RecipeBook:
 
                 output_batch_size = recipe.output.quantity
 
-                batches_required = math.ceil(required_amount_after_using_waste/output_batch_size)
+                batches_required = math.ceil(
+                    required_amount_after_using_waste / output_batch_size)
 
                 produced_amount = batches_required * output_batch_size
 
@@ -121,7 +122,9 @@ class RecipeBook:
 
                 for mat in recipe.inputs:
 
-                    new_recipe.append(MaterialAmount([batches_required * mat.quantity, mat.material]))
+                    new_recipe.append(
+                        MaterialAmount(
+                            [batches_required * mat.quantity, mat.material]))
 
             self.recipe.inputs = new_recipe
 
@@ -138,7 +141,8 @@ class RecipeBook:
         for input in recipe.inputs:
             inputs += " {} x {} ".format(input.quantity, input.material)
 
-        print("{} X {} <= {}".format(recipe.output.quantity, recipe.output.material, inputs))
+        print("{} X {} <= {}".format(recipe.output.quantity,
+                                     recipe.output.material, inputs))
 
     def _find_conversion(self, material):
 
@@ -147,7 +151,6 @@ class RecipeBook:
                 return conversion
 
         return None
-
 
 
 rb = RecipeBook()

@@ -4,9 +4,10 @@ import numpy as np
 import math
 import sys
 
+
 class FFT:
 
-    base_repeating_pattern = np.array([0,1,0,-1])
+    base_repeating_pattern = np.array([0, 1, 0, -1])
 
     def __init__(self, signal=None):
 
@@ -30,7 +31,7 @@ class FFT:
         return np.array(ret)
 
     def _getRepeatingPattern(self, index, len):
-        len+=1 #as we discard first element
+        len += 1  #as we discard first element
         ret = []
 
         for i in range(self.base_repeating_pattern.size):
@@ -42,7 +43,7 @@ class FFT:
             ret = ret[1:len]
             return ret
         else:
-            repeats = math.ceil(len/((index + 1) * 4)) - 1
+            repeats = math.ceil(len / ((index + 1) * 4)) - 1
             apnd = [ret]
             for i in range(repeats):
                 apnd.append(np.copy(ret))
@@ -59,7 +60,7 @@ class FFT:
     def _multiply(self, index, array):
 
         rep = self._getRepeatingPattern(index, array.size)
-        return  abs(np.sum(rep * array)) % 10
+        return abs(np.sum(rep * array)) % 10
 
     def intArray(self, array=None):
 
@@ -90,9 +91,9 @@ class FFT:
         for i in range(times):
             new_signal = np.copy(self.signal)
             sum = 0
-            for n in reversed(range(half,self.signal.size)):
+            for n in reversed(range(half, self.signal.size)):
                 sum += self.signal[n]
-                sum = sum %10
+                sum = sum % 10
                 new_signal[n] = sum
 
             self.signal = new_signal
@@ -100,11 +101,13 @@ class FFT:
             print("{} : {}".format(i, self.signal))
 
     def getOffsetValue(self):
-        val = self.signal[self.offset:self.offset+8]
+        val = self.signal[self.offset:self.offset + 8]
         return self.intArray(val)
 
 
-fft = FFT('59754835304279095723667830764559994207668723615273907123832849523285892960990393495763064170399328763959561728553125232713663009161639789035331160605704223863754174835946381029543455581717775283582638013183215312822018348826709095340993876483418084566769957325454646682224309983510781204738662326823284208246064957584474684120465225052336374823382738788573365821572559301715471129142028462682986045997614184200503304763967364026464055684787169501819241361777789595715281841253470186857857671012867285957360755646446993278909888646724963166642032217322712337954157163771552371824741783496515778370667935574438315692768492954716331430001072240959235708')
+fft = FFT(
+    '59754835304279095723667830764559994207668723615273907123832849523285892960990393495763064170399328763959561728553125232713663009161639789035331160605704223863754174835946381029543455581717775283582638013183215312822018348826709095340993876483418084566769957325454646682224309983510781204738662326823284208246064957584474684120465225052336374823382738788573365821572559301715471129142028462682986045997614184200503304763967364026464055684787169501819241361777789595715281841253470186857857671012867285957360755646446993278909888646724963166642032217322712337954157163771552371824741783496515778370667935574438315692768492954716331430001072240959235708'
+)
 
 # fft.performFFT(100)
 #
@@ -112,4 +115,3 @@ fft = FFT('597548353042790957236678307645599942076687236152739071238328495232858
 
 fft.sumBottomHalf(100)
 print(fft.getOffsetValue())
-
