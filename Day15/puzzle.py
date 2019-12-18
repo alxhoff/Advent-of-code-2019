@@ -75,22 +75,22 @@ class coord:
 
         self.y -= 1
 
-class MazeSolver:
 
-    def __init__(self, maze, start_pos = [0,0]):
+class MazeSolver:
+    def __init__(self, maze, start_pos=[0, 0]):
 
         self.maze = maze
         self.q = queue.Queue()
-        self.q.put([])
-        self.moves = []
         self.start_pos = start_pos
+        self.max_moves = 0
 
     def solve(self):
 
         self._solve()
 
-    def findLongest(self, point):
-        return
+    def findLongest(self):
+
+        return self._solveLen()
 
     def _isValid(self, x, y):
 
@@ -103,13 +103,13 @@ class MazeSolver:
     def _validMove(self, x, y, direction):
 
         if direction == DIRECTION.NORTH:
-            return self._isValid(x, y-1)
+            return self._isValid(x, y - 1)
         elif direction == DIRECTION.SOUTH:
-            return self._isValid(x, y+1)
+            return self._isValid(x, y + 1)
         elif direction == DIRECTION.WEST:
-            return self._isValid(x-1, y)
+            return self._isValid(x - 1, y)
         elif direction == DIRECTION.EAST:
-            return self._isValid(x+1, y)
+            return self._isValid(x + 1, y)
 
         return False
 
@@ -132,10 +132,9 @@ class MazeSolver:
 
         return True
 
-    def _movesToEnd(self, moves):
+    def _movesToEnd(self, moves, finish):
 
         pos = self.start_pos.copy()
-
         for move in moves:
             if move == DIRECTION.NORTH:
                 pos[1] -= 1
@@ -146,11 +145,17 @@ class MazeSolver:
             elif move == DIRECTION.WEST:
                 pos[0] -= 1
 
-        if self.maze[pos[0]][pos[1]] == 'O':
-            print("Path found in {} moves: {}".format(len(moves), moves))
-            return True
+        if any(finish):
+            if pos[0] == finish[0] and pos[1] == finish[1]:
+                print("Path found to {},{} in {} moves".format(
+                    finish[0], finish[1], len(moves)))
+                return len(moves)
+        else:
+            if self.maze[pos[0]][pos[1]] == 'O':
+                print("Path found in {} moves: {}".format(len(moves), moves))
+                return len(moves)
 
-        return False
+        return 0
 
     def _isOpposite(self, move, next_move):
 
@@ -163,23 +168,57 @@ class MazeSolver:
         elif next_move == DIRECTION.EAST:
             if move == DIRECTION.WEST:
                 return True
-        elif next_move ==DIRECTION.WEST:
+        elif next_move == DIRECTION.WEST:
             if move == DIRECTION.EAST:
                 return True
 
-    def _solve(self):
-        while not self._movesToEnd(self.moves):
-            self.moves = self.q.get()
+    def _solve(self, finish=[]):
+        # reset
+        moves = []
 
-            for i in [DIRECTION.NORTH, DIRECTION.SOUTH, DIRECTION.EAST, DIRECTION.WEST]:
-                put = self.moves.copy()
+        while not self.q.empty():
+            self.q.get()
+        self.q.put(moves)
+
+        while not self._movesToEnd(moves, finish):
+            moves = self.q.get()
+
+            for i in [
+                    DIRECTION.NORTH, DIRECTION.SOUTH, DIRECTION.EAST,
+                    DIRECTION.WEST
+            ]:
+                put = moves.copy()
                 if put:
                     if self._isOpposite(put[-1], i):
                         continue
                 put.append(i)
                 if self._validMoves(put):
                     self.q.put(put)
+        return len(moves)
 
+    def _solveLen(self, finish=[]):
+        # reset
+        moves = []
+
+        while not self.q.empty():
+            self.q.get()
+        self.q.put(moves)
+
+        while not self.q.empty():
+            moves = self.q.get()
+
+            for i in [
+                    DIRECTION.NORTH, DIRECTION.SOUTH, DIRECTION.EAST,
+                    DIRECTION.WEST
+            ]:
+                put = moves.copy()
+                if put:
+                    if self._isOpposite(put[-1], i):
+                        continue
+                put.append(i)
+                if self._validMoves(put):
+                    self.q.put(put)
+        return len(moves)
 
 
 class RepairDroid:
@@ -195,7 +234,7 @@ class RepairDroid:
         self.position = coord()
         self.direction_traveling = DIRECTION.NORTH
         self._setMap(self.position.x, self.position.y, BLOCKS.START)
-        self.oxygen_loc = [0,0]
+        self.oxygen_loc = [0, 0]
         self.win = pygame.display.set_mode((900, 900))
         self.block_size = 22
 
@@ -338,7 +377,6 @@ class RepairDroid:
             else:
                 self.direction_traveling = DIRECTION.NORTH
 
-
     def _sendMovement(self, direction):
 
         #  print("Send direction: {}".format(direction.value))
@@ -356,7 +394,8 @@ class RepairDroid:
         ms = MazeSolver(grid)
         ms.solve()
 
-        longest = MazeSolver
+        longest = MazeSolver(grid, self.oxygen_loc)
+        print("Longest: {}".format(longest.findLongest()))
 
     def _finish(self):
         self._printMap()
@@ -364,11 +403,11 @@ class RepairDroid:
         # TODO
         exit(0)
 
-
     def _normalizePoint(self, point):
         points = self._getPoints()
-        return [point[0] - self._getMinX(points), point[1] - self._getMinX(points)]
-
+        return [
+            point[0] - self._getMinX(points), point[1] - self._getMinX(points)
+        ]
 
     # Moves in the direction the robot is facing, records block information depending on response and returns
     # True if the robot was able to move
@@ -396,8 +435,9 @@ class RepairDroid:
             if response == DROID_RESPONSE.AT_OXY:
                 self._setMap(self.position.x, self.position.y,
                              BLOCKS.OXYGEN_SYS)
-                self.oxygen_loc = self._normalizePoint([self.position.x, self.position.y])
-                print("Found oxygen @ {}, {}".format(self.oxygen_loc[0], self.oxygen_loc[1]))
+                self.oxygen_loc = [self.position.x, self.position.y]
+                print("Found oxygen @ {}, {}".format(self.oxygen_loc[0],
+                                                     self.oxygen_loc[1]))
                 # return DROID_RESPONSE.AT_OXY
 
             return DROID_RESPONSE.MOVED
