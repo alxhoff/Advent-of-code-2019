@@ -11,9 +11,13 @@ program = "1,330,331,332,109,3762,1101,1182,0,16,1101,0,1467,24,101,0,0,570,1006
 inp_q = queue.Queue()
 outp_q = queue.Queue()
 
-ic = intCodeComputer(input_queue=inp_q, output_queue=outp_q, program_str=program)
+ic = intCodeComputer(input_queue=inp_q,
+                     output_queue=outp_q,
+                     program_str=program)
+ic.patchProgram(0, 2)
 ic.start()
 time.sleep(1)
+
 
 class OUTPUT_CODE(Enum):
 
@@ -25,6 +29,7 @@ class OUTPUT_CODE(Enum):
     LEFT = '<'
     RIGHT = '>'
     DEAD = 'X'
+
 
 def processOutput():
     count = 0
@@ -43,16 +48,19 @@ def processOutput():
 
     return lines
 
+
 def printLines(lines):
 
     for row in lines:
         print(row)
+
 
 def isScaffold(inp):
 
     if inp == OUTPUT_CODE.SCAFFOLD.value:
         return True
     return False
+
 
 def findIntersections(lines):
 
@@ -63,22 +71,22 @@ def findIntersections(lines):
                 continue
             i = 0
             try:
-                if isScaffold(lines[y][x-1]):
+                if isScaffold(lines[y][x - 1]):
                     i += 1
             except IndexError:
                 pass
             try:
-                if isScaffold(lines[y][x+1]):
+                if isScaffold(lines[y][x + 1]):
                     i += 1
             except IndexError:
                 pass
             try:
-                if isScaffold(lines[y-1][x]):
+                if isScaffold(lines[y - 1][x]):
                     i += 1
             except IndexError:
                 pass
             try:
-                if isScaffold(lines[y+1][x]):
+                if isScaffold(lines[y + 1][x]):
                     i += 1
             except IndexError:
                 pass
@@ -87,12 +95,134 @@ def findIntersections(lines):
                 intersections.append((x, y))
     return intersections
 
+
 def sumAlignmentParameters(intersections):
 
     return sum([i[0] * i[1] for i in intersections])
 
-lines = processOutput()
-printLines(lines)
-intersections = findIntersections(lines)
-sum_of_alignment_parameters = sumAlignmentParameters(intersections)
-print("Part1: {}".format(sum_of_alignment_parameters))
+
+def sendRoutine(routine):
+    for i, char in enumerate(routine):
+        inp_q.put(ord(char))
+        print("Sent: {}".format(char))
+        if i != len(routine) - 1:
+            inp_q.put(ord(','))
+            print("Sent: {}".format(','))
+
+    inp_q.put(ord('\n'))
+    print("Sent: {}".format('\\n'))
+
+
+def sendMainEntryRoutine():
+    routine = "ABABCCBCBA"
+    sendRoutine(routine)
+
+
+def sendARoutine():
+    routine = "R84L8R84"
+    sendRoutine(routine)
+
+
+def sendBRoutine():
+    routine = "R8R6R6R8"
+    sendRoutine(routine)
+
+
+def sendCRoutine():
+    routine = "R8L8R8R4R4"
+    sendRoutine(routine)
+
+
+def getPrompt():
+
+    prompt = ""
+    while not outp_q.empty():
+        prompt += chr(outp_q.get())
+    print(prompt)
+
+
+def sendRoutines():
+    getPrompt()
+    sendMainEntryRoutine()
+    getPrompt()
+    sendARoutine()
+    getPrompt()
+    sendBRoutine()
+    getPrompt()
+    sendCRoutine()
+    getPrompt()
+    inp_q.put(ord('n'))  # No video feed
+    inp_q.put(ord('\n'))
+
+
+def getResults():
+
+    return outp_q.get(block=True)
+
+
+#Part 1
+# Remove patch to ic program
+# lines = processOutput()
+# printLines(lines)
+# intersections = findIntersections(lines)
+# sum_of_alignment_parameters = sumAlignmentParameters(intersections)
+# print("Part1: {}".format(sum_of_alignment_parameters))
+
+#Part 2
+sendRoutines()
+while not outp_q.empty():
+    print("Total dust = {}".format(getResults()))
+
+#Part 1 output
+
+# ............#############....................
+# ............#...........#....................
+# ............#.....#########..................
+# ............#.....#.....#.#..................
+# ............#.....#.....#.#..................
+# ............#.....#.....#.#..................
+# ............#.....#.....#.#..................
+# ............#.....#.....#.#..................
+# ^############.....#######.#..................
+# ..........................#..................
+# ..........................#..................
+# ..........................#..................
+# ..........................#.#................
+# ..........................#.#................
+# ..........................#########..........
+# ............................#.....#..........
+# ............................#.....#..........
+# ............................#.....#..........
+# ............................#.....#..........
+# ............................#.....#..........
+# ..........................#######.#..........
+# ..........................#.#...#.#..........
+# ..........................#.#...#.#..........
+# ..........................#.#...#.#..........
+# ..........................#.#########........
+# ..........................#.....#.#.#........
+# ..........................#########.#........
+# ................................#...#........
+# ........................#########...#........
+# ........................#...........#........
+# ........................#...........#.#######
+# ........................#...........#.#.....#
+# ................#####...#...........#.#.....#
+# ................#...#...#...........#.#.....#
+# ................#...#...#.........#########.#
+# ................#...#...#.........#.#.#...#.#
+# ................#########.........#.#########
+# ....................#.............#...#...#..
+# ....................#.............#...#####..
+# ....................#.............#..........
+# ....................#########.....#..........
+# ............................#.....#..........
+# ..........................#########..........
+# ..........................#.#................
+# ........................#########............
+# ........................#.#.#...#............
+# ........................#.#.#...#............
+# ........................#.#.#...#............
+# ........................#####...#............
+# ..........................#.....#............
+# ..........................#######............

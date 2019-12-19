@@ -158,6 +158,8 @@ class intCodeComputer(threading.Thread):
 
     def endProgram(self):
         self.output = self.program[0]
+        if self.output_queue:
+            self.output_queue.put(self.output)
         if self.exit_semaphore:
             self.exit_semaphore.release()
 
