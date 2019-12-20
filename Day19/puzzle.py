@@ -27,9 +27,12 @@ def request(x, y):
     inp_q.put(y)
     clearOutputQueue()
     ic.runInitialProgram()
-    return outp_q.get(block=True)
+    ret = outp_q.get(block=True)
+    print("{},{} -> {}".format(x, y, ret))
+    return ret
 
 
+# part 1
 print_str = ""
 
 for y, row in enumerate(grid):
@@ -42,4 +45,37 @@ for y, row in enumerate(grid):
 print(print_str)
 
 result = sum(list(filter(lambda x: x == 1, grid.flatten())))
+
 print("Result = {}".format(result))
+
+# part 2
+
+# Search algorithm - brute force
+# Starting from (400,700)
+# While not finished
+#   If current is 1
+#       If x - 1 is also 1:
+#           x -= 20
+#               continue
+#       If the point with the y-99 and x+99 also have a #
+#           Finished
+#   else
+
+cur_x = 0
+cur_y = 100
+square_size = 100
+coord_diff = square_size - 1
+finished = False
+while not finished:
+    print("move x")
+    if request(cur_x, cur_y):
+        print("check opposite corner")
+        if request(cur_x + coord_diff, cur_y - coord_diff):
+            finished = True
+            break
+        cur_y += 1
+    else:
+        cur_x += 1
+
+print("Result: ({},{}) -> {}".format(cur_x, cur_y - 99,
+                                     cur_x * 10000 + cur_y - coord_diff))
