@@ -2,6 +2,8 @@
 
 import curses.ascii as na
 import time
+import operator
+
 
 class Coord:
     def __init__(self, x, y):
@@ -142,15 +144,16 @@ class Map:
                         print(e)
                         pass
 
-
     def _placePortalMappings(self, grid):
 
         grid[self.start_loc.y][self.start_loc.x] = 's'
         grid[self.end_loc.y][self.end_loc.x] = 'f'
         for label, mapping in self.portals.items():
             if not label in ['AA', 'ZZ']:
-                grid[mapping.p1.y][mapping.p1.x] = "{},{},{}".format(label, mapping.p2.x, mapping.p2.y)
-                grid[mapping.p2.y][mapping.p2.x] = "{},{},{}".format(label, mapping.p1.x, mapping.p1.y)
+                grid[mapping.p1.y][mapping.p1.x] = "{},{},{}".format(
+                    label, mapping.p2.x, mapping.p2.y)
+                grid[mapping.p2.y][mapping.p2.x] = "{},{},{}".format(
+                    label, mapping.p1.x, mapping.p1.y)
 
     def printGrid(self):
 
@@ -158,7 +161,9 @@ class Map:
             str(line) for line in list("".join(line2) for line2 in self.grid)
         ]))
 
+
 debug_no = 0
+
 
 class MapCompleter:
     def __init__(self):
@@ -171,17 +176,15 @@ class MapCompleter:
         start_time = time.time()
 
         seen_moves = []
-        start_pos = [self.map.start_loc.x , self.map.start_loc.y]
+        start_pos = [self.map.start_loc.x, self.map.start_loc.y]
         start_level = 0
         start_move_count = 0
-        # warps = []
-        # self.q = [[start_pos, start_level, start_move_count, warps]]
-        self.q = [[start_pos, start_level, start_move_count]]
+        prev_dir = (0, 0)
+        self.q = [[start_pos, start_level, start_move_count, prev_dir]]
 
         while len(self.q):
 
-            # pos, level, move_cnt, warps = self.q.pop(0)
-            pos, level, move_cnt = self.q.pop(0)
+            pos, level, move_cnt, prev_dir = self.q.pop(0)
 
             if self._isAtFinish(pos[0], pos[1], level):
                 break
@@ -189,25 +192,24 @@ class MapCompleter:
             for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
                 debug_no += 1
 
+                if tuple(map(operator.add, (dx, dy), prev_dir)) == (0, 0):
+                    continue
+
                 new_pos = (pos[0] + dx, pos[1] + dy)
                 new_level = level
 
                 if self.map.grid[new_pos[1]][new_pos[0]] == '#':
                     continue
 
-                if (new_pos, new_level) in seen_moves:
-                    continue
-                seen_moves.append((new_pos, new_level))
-
                 # Standard move
                 if self.map.grid[new_pos[1]][new_pos[0]] in ['.', 'f']:
-                    # self.q.append((new_pos, new_level, move_cnt + 1, warps.copy()))
-                    self.q.append((new_pos, new_level, move_cnt + 1))
+                    self.q.append((new_pos, new_level, move_cnt + 1, (dx, dy)))
 
                 # Portal
                 label = self._isPortal(new_pos)
                 if label:
-                    level_change = self._getPortalLevelDelta(new_pos[0], new_pos[1], new_level)
+                    level_change = self._getPortalLevelDelta(
+                        new_pos[0], new_pos[1], new_level)
                     if level_change:
                         # Change position
                         op = self.map.grid[new_pos[1]][new_pos[0]].split(",")
@@ -216,22 +218,11 @@ class MapCompleter:
                         new_level += level_change
                         if new_level > self.map.portal_count:
                             continue
-                        # if (new_pos, new_level) in seen_moves:
-                        #     continue
-                        # seen_moves.append((new_pos, new_level))
-
                         # Track warp
-                        # warps.append((label, new_level, debug_no))
-                        # self.q.append((new_pos, new_level, move_cnt + 2, warps.copy()))
-                        self.q.append((new_pos, new_level, move_cnt + 2))
+                        self.q.append(
+                            (new_pos, new_level, move_cnt + 2, (0, 0)))
 
         print("FINISHED in {}".format(time.time() - start_time))
-        # prev_portal = 'AA'
-        # prev_level = 0
-        # for move in warps:
-        #     print("{}->{}, level {}->{} @ {}".format(prev_portal, move[0], prev_level, move[1], move[2]))
-        #     prev_portal = move[0]
-        #     prev_level = move[1]
         return move_cnt
 
     def _isAtFinish(self, x, y, level):
@@ -254,6 +245,7 @@ class MapCompleter:
         if 'A' <= self.map.grid[pos[1]][pos[0]][0] <= 'Z':
             return self.map.grid[pos[1]][pos[0]][0:2]
         return None
+
 
 my_map = MapCompleter()
 my_map.map.printGrid()
