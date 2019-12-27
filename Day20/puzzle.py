@@ -1,7 +1,5 @@
 #!/bin/python
 
-from enum import Enum
-import copy
 import curses.ascii as na
 import time
 
@@ -160,78 +158,88 @@ class Map:
             str(line) for line in list("".join(line2) for line2 in self.grid)
         ]))
 
-
-class MOVE_DIR(Enum):
-
-    UP = 1
-    DOWN = 4
-    LEFT = 2
-    RIGHT = 3
-    WARP = 6
-
-
-class Moves:
-    def __init__(self, initial_loc):
-
-        self.pos = initial_loc
-        self.moves = []
-        self.warps = []
-        self.level = 0
-
-
 debug_no = 0
-
 
 class MapCompleter:
     def __init__(self):
 
         self.map = Map()
-
         self.q = []
 
     def solve(self):
         global debug_no
-        moves = Moves(self.map.start_loc)
         start_time = time.time()
-        self.q = [moves]
 
-        while not self._isAtFinish(moves):
-            debug_no += 1
+        seen_moves = []
+        start_pos = [self.map.start_loc.x , self.map.start_loc.y]
+        start_level = 0
+        start_move_count = 0
+        # warps = []
+        # self.q = [[start_pos, start_level, start_move_count, warps]]
+        self.q = [[start_pos, start_level, start_move_count]]
 
-            try:
-                moves = self.q.pop(0)
-            except Exception as e:
-                print(e)
+        while len(self.q):
 
-            if debug_no == 116:
-                print("wait here")
+            # pos, level, move_cnt, warps = self.q.pop(0)
+            pos, level, move_cnt = self.q.pop(0)
 
-            for i in [
-                    MOVE_DIR.UP, MOVE_DIR.DOWN, MOVE_DIR.LEFT, MOVE_DIR.RIGHT
-            ]:
-                put = copy.deepcopy(moves)
-                if put.moves:
-                    if self._isOpposite(put.moves[-1], i):
-                        continue
-                put.moves.append(i)
-                if self._validMoves(put):
-                    self.q.append(put)
+            if self._isAtFinish(pos[0], pos[1], level):
+                break
+
+            for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                debug_no += 1
+
+                new_pos = (pos[0] + dx, pos[1] + dy)
+                new_level = level
+
+                if self.map.grid[new_pos[1]][new_pos[0]] == '#':
+                    continue
+
+                if (new_pos, new_level) in seen_moves:
+                    continue
+                seen_moves.append((new_pos, new_level))
+
+                # Standard move
+                if self.map.grid[new_pos[1]][new_pos[0]] in ['.', 'f']:
+                    # self.q.append((new_pos, new_level, move_cnt + 1, warps.copy()))
+                    self.q.append((new_pos, new_level, move_cnt + 1))
+
+                # Portal
+                label = self._isPortal(new_pos)
+                if label:
+                    level_change = self._getPortalLevelDelta(new_pos[0], new_pos[1], new_level)
+                    if level_change:
+                        # Change position
+                        op = self.map.grid[new_pos[1]][new_pos[0]].split(",")
+                        new_pos = (int(op[1]), int(op[2]))
+                        # Increase or decrease level
+                        new_level += level_change
+                        if new_level > self.map.portal_count:
+                            continue
+                        # if (new_pos, new_level) in seen_moves:
+                        #     continue
+                        # seen_moves.append((new_pos, new_level))
+
+                        # Track warp
+                        # warps.append((label, new_level, debug_no))
+                        # self.q.append((new_pos, new_level, move_cnt + 2, warps.copy()))
+                        self.q.append((new_pos, new_level, move_cnt + 2))
 
         print("FINISHED in {}".format(time.time() - start_time))
-        prev_portal = 'AA'
-        prev_level = 0
-        for move in moves.warps:
-            print("{}->{} @ {}, Level: {}->{}, debug#: {}".format(prev_portal, move[0], move[2] - 1, prev_level, move[1], move[3]))
-            prev_portal = move[0]
-            prev_level = move[1]
-        return len(moves.moves)
+        # prev_portal = 'AA'
+        # prev_level = 0
+        # for move in warps:
+        #     print("{}->{}, level {}->{} @ {}".format(prev_portal, move[0], prev_level, move[1], move[2]))
+        #     prev_portal = move[0]
+        #     prev_level = move[1]
+        return move_cnt
 
-    def _isAtFinish(self, moves):
+    def _isAtFinish(self, x, y, level):
 
-        if self.map.grid[moves.pos.y][moves.pos.x] == 'f' and moves.level == 0:
-            return len(moves.moves)
+        if self.map.grid[y][x] == 'f' and level == 0:
+            return True
 
-        return 0
+        return False
 
     def _getPortalLevelDelta(self, x, y, level):
 
@@ -241,63 +249,11 @@ class MapCompleter:
             return -1
         return 1
 
-    def _isPortal(self, loc):
+    def _isPortal(self, pos):
 
-        if 'A' <= loc[0] <= 'Z':
-            return True
-        return False
-
-    def _validMoves(self, moves):
-        global debug_no
-
-        move = moves.moves[-1]
-
-        if move == MOVE_DIR.UP:
-            moves.pos.y -= 1
-        elif move == MOVE_DIR.DOWN:
-           moves.pos.y += 1
-        elif move == MOVE_DIR.LEFT:
-            moves.pos.x -= 1
-        elif move == MOVE_DIR.RIGHT:
-            moves.pos.x += 1
-
-        loc = self.map.grid[moves.pos.y][moves.pos.x]
-
-        if loc == ' ':
-            return False
-
-        if loc == '.' or loc == 'f' and moves.level == 0:
-            return True
-
-        if self._isPortal(loc):
-            # Check portal can be used given current level
-            outer = self._getPortalLevelDelta(moves.pos.x, moves.pos.y, moves.level)
-            if outer:
-                # Extra step needed
-                moves.moves.append(MOVE_DIR.WARP)
-
-                # Change position
-                op = self.map.grid[moves.pos.y][moves.pos.x].split(",")
-                moves.pos.x = int(op[1])
-                moves.pos.y = int(op[2])
-
-                # Increase or decrease level
-                moves.level += outer
-
-                if moves.level > self.map.portal_count:
-                    return False
-
-                # Bookkeeping
-                moves.warps.append([op[0], moves.level, len(moves.moves), debug_no])
-                return True
-
-
-        return False
-
-    def _isOpposite(self, one, two):
-
-        return True if one.value + two.value == 5 else False
-
+        if 'A' <= self.map.grid[pos[1]][pos[0]][0] <= 'Z':
+            return self.map.grid[pos[1]][pos[0]][0:2]
+        return None
 
 my_map = MapCompleter()
 my_map.map.printGrid()
